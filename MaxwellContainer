@@ -17,20 +17,20 @@ class MaxwellContainer {
     }
 
     public MaxwellContainer(int h, int w, int d, int r, int b, int[][] particlesData) {
-    this.width = w;
-    this.height = h;
-    this.demons = new ArrayList<>();
-    this.particles = new ArrayList<>();
-    this.holes = new ArrayList<>();
-    this.isVisible = true;
-
-    for (int i = 0; i < particlesData.length; i++) {
-        int px = particlesData[i][0];  
-        int py = particlesData[i][1];  
-        int vx = particlesData[i][2];  
-        int vy = particlesData[i][3];  
-        boolean isRed = (i < r); 
-        addParticle(isRed ? "red" : "blue", isRed, px, py, vx, vy);
+        this.width = w;
+        this.height = h;
+        this.demons = new ArrayList<>();
+        this.particles = new ArrayList<>();
+        this.holes = new ArrayList<>();
+        this.isVisible = true;
+        for (int i = 0; i < particlesData.length; i++) {
+            int px = particlesData[i][0];  
+            int py = particlesData[i][1];  
+            int vx = particlesData[i][2];  
+            int vy = particlesData[i][3];  
+            boolean isRed = (i < r); 
+            addParticle(isRed ? "red" : "blue", px, py, vx, vy);
+        }
     }
     
 
