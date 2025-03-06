@@ -1,0 +1,56 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MaxwellSimulator {
+    private Canvas canvas;
+    private int width, height;
+    private List<Particle> particles;
+    private Demon demon;
+    
+    public MaxwellSimulator(int width, int height) {
+        this.width = width;
+        this.height = height;
+        this.canvas = Canvas.getCanvas();
+        this.particles = new ArrayList<>();
+        this.demon = new Demon(width / 2, height / 2);
+    }
+    
+    public void addParticle(int x, int y, int vx, int vy, String color) {
+        Particle p = new Particle(color, x, y, vx, vy);
+        particles.add(p);
+    }
+    
+    public void draw() {
+    // Dibujar contenedor
+    Rectangle board = new Rectangle(width, height);
+    board.changeColor("blue"); // Color del tablero
+    board.makeVisible();
+    
+    // Dibujar partículas como círculos
+    for (Particle p : particles) {
+        Circle particleCircle = new Circle(); // Crear un círculo con radio 10
+        particleCircle.changeColor(p.getColor()); // Establecer color de la partícula
+        particleCircle.moveHorizontal(p.getPx() - particleCircle.getXPosition()); // Ajustar posición
+        particleCircle.moveVertical(p.getPy() - particleCircle.getYPosition());
+        particleCircle.makeVisible();
+    }
+    
+    // Dibujar demonio como rectángulo
+    Rectangle demonRect = new Rectangle(20, 20);
+    demonRect.changeColor("red");
+    demonRect.moveHorizontal(demon.x - demonRect.getXPosition());
+    demonRect.moveVertical(demon.y - demonRect.getYPosition());
+    demonRect.makeVisible();
+    }
+        
+
+    
+    public static void main(String[] args) {
+        MaxwellSimulator simulator = new MaxwellSimulator(600, 400);
+        simulator.addParticle(100, 100, 2, 2, "blue");
+        simulator.addParticle(200, 150, -2, 1, "green");
+        simulator.draw();
+    }
+}
