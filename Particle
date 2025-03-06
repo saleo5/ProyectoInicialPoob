@@ -1,0 +1,28 @@
+class Particle {
+    private String color;
+    private int px, py, vx, vy;
+    public Particle(String color, int px, int py, int vx, int vy) {
+        this.color = color;
+        this.px = px;
+        this.py = py;
+        this.vx = vx;
+        this.vy = vy;
+    }
+    
+    public String getColor(){
+        return color;
+    }
+    
+    public int getPy(){
+        return py;
+    }
+    
+    public void move() {
+        px += vx;
+        py += vy;
+    }
+    
+    public int getPx() { 
+        return px; 
+    }
+}
