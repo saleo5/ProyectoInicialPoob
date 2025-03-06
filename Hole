@@ -1,0 +1,17 @@
+class Hole {
+    private int px, py, capacity;
+    
+    public Hole(int px, int py, int capacity) {
+        this.px = px;
+        this.py = py;
+        this.capacity = capacity;
+    }
+    
+    public boolean absorb(Particle p) {
+        if (capacity > 0 && p.getPx() == px && p.getPy() == py) {
+            capacity--;
+            return true;
+        }
+        return false;
+    }
+}
