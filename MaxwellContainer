@@ -144,4 +144,12 @@ public class MaxwellContainer
             p.draw();
         }
     }
+    public void animateParticles(int steps, int delay) {
+        for (int i = 0; i < steps; i++) {
+            for (Particle p : particles) {
+                p.move();  // Mueve cada partícula
+            }
+            Canvas.getCanvas().wait(0); //sin pausas
+        }
+    }
 }
