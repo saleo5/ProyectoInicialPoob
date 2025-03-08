@@ -1,28 +1,70 @@
-class Particle {
+import java.lang.Math;
+/**
+ *
+ * 
+ *  
+ * 
+ */
+public class Particle
+{
+    private int m1, m2, m3, t1,t2;
+    private int x1, y1,x2, y2; 
+    private int vx, vy;
+    private boolean isRed; 
+    private Circle circle;
     private String color;
-    private int px, py, vx, vy;
-    public Particle(String color, int px, int py, int vx, int vy) {
-        this.color = color;
-        this.px = px;
-        this.py = py;
+    private int diametro;
+    private int radioDemonio;
+    private int posicionDemonio,DcoorX1,DcoorX2,DcoorY1,DcoorY2,DcoorM;
+    
+    public Particle(String color, boolean isRed, int x, int y, int vx, int vy, int d,int h, int w, int posDemon , int demon) {
+        int X = (x-(d/2));
+        int Y = (y-(d/2));
+        this.x1 = X;
+        this.y1 = Y;
+        this.x2 = X+d;
+        this.radioDemonio =demon;
+        this.posicionDemonio =posDemon;
+        this.y2 = Y+d;
+        this.diametro = Math.abs(x1-x2);
+        this.DcoorX1 = ((w/2))-demon;
+        this.DcoorX2 = ((w/2))+demon;
+        this.DcoorY1 = posDemon-demon;
+        this.DcoorY2 = posDemon+demon;
+        this.DcoorM = ((w/2));
         this.vx = vx;
         this.vy = vy;
+        this.m1 = 5;
+        this.m2 = ((w/2));
+        this.m3 = w-5;
+        this.t1 = 5;
+        this.t2 = h-5;
+        this.isRed = isRed;
+        this.circle = new Circle(X, Y, d, color);
+        this.color = color;
+        circle.makeVisible();
     }
+    
+    public void erase(){
+        this.circle.erase();
+    }
+    
+    public void draw(){
+        this.circle.draw();
+    } 
     
     public String getColor(){
-        return color;
+        return this.color;
     }
     
-    public int getPy(){
-        return py;
+    public void makeVisible(){
+        this.circle.makeVisible();
     }
     
-    public void move() {
-        px += vx;
-        py += vy;
+    public void makeInvisible(){
+        this.circle.makeInvisible();
     }
     
-    public int getPx() { 
-        return px; 
-    }
+    
+    
 }
