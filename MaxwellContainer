@@ -1,102 +1,147 @@
 import java.util.*;
 
-class MaxwellContainer {
-    private int width, height;
-    private List<Demon> demons;
-    private List<Particle> particles;
-    private List<Hole> holes;
+/**
+ * 
+ *
+ * 
+ * 
+ */
+public class MaxwellContainer
+{
+    private static Canvas canvas;
+    private TreeMap<Integer, Demon> demons;
+    private ArrayList<Particle> particles;
+    private ArrayList<Rectangle> tablero;
+    private final int Height;
+    private final int Width;
+    private int blueParticles;
+    private int redParticles;
     private boolean isVisible;
-
-    public MaxwellContainer(int w, int h) {
-        this.width = w;
-        this.height = h;
-        this.demons = new ArrayList<>();
-        this.particles = new ArrayList<>();
-        this.holes = new ArrayList<>();
-        this.isVisible = true;
+    private int DistanciaDomonio;
+    /**
+     * Constructor for objects of class MaxwellContainer
+     */
+    private MaxwellContainer(int h, int w){
+        this.Height = h;
+        this.Width = w; 
+        CrearCanvas(w, h);
+        CrearTablero(w, h);
+        this.demons = new TreeMap<>();
     }
-
-    public MaxwellContainer(int h, int w, int d, int r, int b, int[][] particlesData) {
-        this.width = w;
-        this.height = h;
-        this.demons = new ArrayList<>();
+    //, int[][] particles
+    public MaxwellContainer(int h, int w, int d, int b, int r, int[][] particlesData){
+        this(h, (w*2));
+        this.demons = new TreeMap<>();
         this.particles = new ArrayList<>();
-        this.holes = new ArrayList<>();
-        this.isVisible = true;
-        for (int i = 0; i < particlesData.length; i++) {
-            int px = particlesData[i][0];  
-            int py = particlesData[i][1];  
-            int vx = particlesData[i][2];  
-            int vy = particlesData[i][3];  
-            boolean isRed = (i < r); 
-            addParticle(isRed ? "red" : "blue", px, py, vx, vy);
-        }
+        addDeamon(d);
+        this.DistanciaDomonio=d;
+        this.blueParticles = b;
+        this.redParticles = r;
+        addParticlesForMatriz(particlesData);
+        this.makeVisible();
     }
     
-
-    public void addDemon(int x, int y) {
-        demons.add(new Demon(x, y));
+    private void CrearCanvas(int width, int heigth){
+        canvas = new Canvas(width, heigth);
+        canvas.getCanvas(width, heigth);
     }
-
-    public void delDemon(int d) {
-        demons.removeIf(demon -> demon.getPosition() == d);
+    
+    private void CrearTablero(int w, int h){
+        Rectangle recta1 = new Rectangle( 0, 0, h, w, "orange");
+        Rectangle recta2 = new Rectangle( 5, 5, (h-10) , (w - 10), "white");
+        Rectangle  recta3 = new Rectangle( ((w/2)-(w/128)), 0 ,h, (w/64), "gray");
+        this.tablero = new ArrayList<>();
+        tablero.add(recta1);
+        tablero.add(recta2);
+        tablero.add(recta3);
     }
-
-    public void addParticle(String color, int px, int py, int vx, int vy) {
-        particles.add(new Particle(color, px, py, vx, vy));
-    }
-
-    public void delParticle(String color) {
-        particles.removeIf(p -> p.getColor().equals(color));
-    }
-
-    public void addHole(int px, int py, int capacity) {
-        holes.add(new Hole(px, py, capacity));
-    }
-
-    public void start(int ticks) {
-        for (int i = 0; i < ticks; i++) {
-            moveParticles();
-        }
-    }
-
-    private void moveParticles() {
-        for (Particle p : particles) {
-            p.move();
-            checkCollisions(p);
-        }
-    }
-
-    private void checkCollisions(Particle p) {
-        for (Hole h : holes) {
-            if (h.absorb(p)) {
-                particles.remove(p);
-                break;
-            }
-        }
-    }
-
-    public boolean isGoal() {
-        return particles.stream().allMatch(p -> (p.getColor().equals("red") && p.getPx() < width / 2) || 
-                                              (p.getColor().equals("blue") && p.getPx() > width / 2));
-    }
-
-    public void makeVisible() {
-        isVisible = true;
-    }
-
-    public void makeInvisible() {
-        isVisible = false;
-    }
-
-    public boolean ok(){
+    
+    public boolean oK(){
         return true;
     }
     
-    public void finish() {
-        System.out.println("Simulation finished.");
+    public void makeVisible(){
+        for(Rectangle o : this.tablero){
+            o.makeVisible();
+        }
+        if (this.demons.size() != 0){
+            for(Demon d : this.demons.values()){
+                d.makeVisible();
+            }
+        }
+        for(Particle o : this.particles){
+            o.makeVisible();
+        }
     }
     
+    public void makeInvisible(){
+        for(Rectangle o : this.tablero){
+            o.makeInvisible();
+        }
+        if (this.demons.size() != 0){
+            for(Demon d : this.demons.values()){
+                d.makeInvisible();
+            }
+        }
+        for(Particle o : this.particles){
+            o.makeInvisible();
+        }
+    }
     
+    private boolean searchDeamon(int d){
+        return this.demons.containsKey(d);
+    }
     
+    private boolean crashDeamon(int d){
+        for (int i=(d-(this.Height/5)); i<= (d+(this.Height/5)) ;i++){
+            if (searchDeamon(i)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void addDeamon(int d) {
+        if (!crashDeamon(d)) {
+            Demon deamon = new Demon(((this.Width / 2)-(this.Height/20)), (d - (this.Height/20)),(this.Height/10));
+            deamon.makeVisible();
+            demons.put(d,deamon);
+            System.out.println("Demonio en "+d+" fue creado exitosamente");
+        }else{
+            System.out.println("Hay un demonio en este lugar o muy cerca");
+        }
+    }
+    
+    public void delDeamon(int d) {
+        if (searchDeamon(d)){
+            this.demons.get(d).erase();
+            this.demons.remove(d);
+        }else{
+            System.out.println("Demoniio no Existe");
+        }
+    }
+    
+    public void addParticlesForMatriz(int[][] particlesData){
+        for (int i=0; i<(blueParticles+redParticles);i++) {
+            if(i<redParticles){
+                addParticle("red", true, particlesData[i][0], particlesData[i][1], particlesData[i][2], particlesData[i][3]);
+            }else{
+                addParticle("blue", false, particlesData[i][0], particlesData[i][1], particlesData[i][2], particlesData[i][3]);
+            }
+        }        
+    }
+    
+    public void addParticle(String color, boolean isRed, int x, int y, int vx, int vy){
+        this.particles.add(new Particle(color, isRed, x, y, vx, vy,(this.Height/20), this.Height, this.Width,(this.DistanciaDomonio - (this.Height/20)),(this.Height/20)));        
+    }
+    
+    public void delParticle(String color){
+        for(Particle p: this.particles){
+            p.erase();
+        }
+        this.particles.removeIf(p -> p.getColor().equals(color));
+        for(Particle p: this.particles){
+            p.draw();
+        }
+    }
 }
