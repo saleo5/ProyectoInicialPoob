@@ -10,13 +10,16 @@ public class MaxwellSimulator {
         
         int[][] particlesData = new int[blueParticles + redParticles][4];
         for (int i = 0; i < blueParticles + redParticles; i++) {
-            particlesData[i][0] = (int) (Math.random() * width);
-            particlesData[i][1] = (int) (Math.random() * height);
-            particlesData[i][2] = (int) (Math.random() * 5) - 2;
-            particlesData[i][3] = (int) (Math.random() * 5) - 2;
+            particlesData[i][0] = (int) (Math.random() * (width - 20)) + 10;  // Evitar bordes
+            particlesData[i][1] = (int) (Math.random() * (height - 20)) + 10;
+            particlesData[i][2] = (int) (Math.random() * 40) - 20;  // Velocidad X
+            particlesData[i][3] = (int) (Math.random() * 40) - 20;  // Velocidad Y
         }
         
         container = new MaxwellContainer(height, width, distanciaDemonio, blueParticles, redParticles, particlesData);
+        
+        // Agregar animación de las partículas
+        container.animateParticles(1000, 20);
     }
     
     public static void main(String[] args) {
