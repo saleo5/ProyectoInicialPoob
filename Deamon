@@ -1,0 +1,35 @@
+import java.util.*;
+
+/**
+ * Representa un demonio que controla el paso de partículas.
+ */
+public class Deamon {
+    private boolean isVisible;
+    private int xPosition, yPosition, escala;
+    private Rectangle body;
+
+    /**
+     * Constructor del demonio.
+     */
+    public Deamon(int x, int y, int escala) {
+        this.xPosition = x;
+        this.yPosition = y;
+        this.escala = escala;
+        this.body = new Rectangle(x, y, escala, escala, "black");
+    }
+
+    /**
+     * Hace visible el demonio en pantalla.
+     */
+    public void makeVisible() {
+        this.isVisible = true;
+        this.body.makeVisible();
+    }
+
+    /**
+     * Decide aleatoriamente si una partícula puede pasar o debe rebotar.
+     */
+    public boolean shouldRebound() {
+        return Math.random() < 0.5;
+    }
+}
