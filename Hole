@@ -1,17 +1,29 @@
-class Hole {
-    private int px, py, capacity;
-    
-    public Hole(int px, int py, int capacity) {
-        this.px = px;
-        this.py = py;
-        this.capacity = capacity;
+import java.util.*;
+
+/**
+ * Representa un agujero donde las partículas pueden caer.
+ */
+public class Hole {
+    private int x, y;
+    private int capacidad;
+    private int ocupados = 0;
+    private boolean full = false;
+    private Circle hole;
+
+    /**
+     * Constructor de un agujero.
+     */
+    public Hole(int x, int y, int capacidad) {
+        this.hole = new Circle(x - 10, y - 10, 20, "#01ffdc");
+        this.x = x;
+        this.y = y;
+        this.capacidad = capacidad;
     }
-    
-    public boolean absorb(Particle p) {
-        if (capacity > 0 && p.getPx() == px && p.getPy() == py) {
-            capacity--;
-            return true;
-        }
-        return false;
+
+    /**
+     * Hace visible el agujero en pantalla.
+     */
+    public void makeVisible() {
+        this.hole.makeVisible();
     }
 }
