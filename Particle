@@ -1,8 +1,3 @@
-import java.util.*;
-
-/**
- * Representa una partícula que se mueve dentro del contenedor.
- */
 public class Particle {
     private static final int size = 10;
     private int vx, vy;
@@ -11,18 +6,9 @@ public class Particle {
     private String color;
     private final boolean isRed;
 
-    /**
-     * Constructor de una partícula.
-     * @param color Color de la partícula.
-     * @param isRed Indica si es una partícula roja.
-     * @param x Posición inicial en X.
-     * @param y Posición inicial en Y.
-     * @param vx Velocidad en X.
-     * @param vy Velocidad en Y.
-     */
     public Particle(String color, boolean isRed, int x, int y, int vx, int vy) {
         this.isRed = isRed;
-        this.vx = (vx == 0) ? 1 : vx; // Asegurar que no se quede quieta
+        this.vx = (vx == 0) ? 1 : vx;
         this.vy = (vy == 0) ? 1 : vy;
         this.x = x;
         this.y = y;
@@ -30,71 +16,62 @@ public class Particle {
         this.color = color;
     }
 
-    /**
-     * Mueve la partícula en el espacio.
-     */
     public void move(int dt) {
         int newX = x + vx * dt;
         int newY = y + vy * dt;
 
-        // Rebote en los bordes del contenedor
         if (newX < 5 || newX > 400 - 5 - size) {
-            vx *= -1; // Invierte la dirección en X
+            vx *= -1;
         }
         if (newY < 5 || newY > 400 - 5 - size) {
-            vy *= -1; // Invierte la dirección en Y
+            vy *= -1;
         }
 
-        // Actualiza la posición
         x += vx * dt;
         y += vy * dt;
 
-        // Mueve la representación gráfica
         circle.makeInvisible();
         circle.moveHorizontal(vx * dt);
         circle.moveVertical(vy * dt);
         circle.makeVisible();
     }
 
-    /**
-     * Hace visible la partícula en pantalla.
-     */
     public void makeVisible() {
         this.circle.makeVisible();
     }
 
-    /**
-     * Hace invisible la partícula en pantalla.
-     */
     public void makeInvisible() {
         this.circle.makeInvisible();
     }
 
-    /**
-     * Devuelve la posición en X de la partícula.
-     */
     public int getX() {
         return x;
     }
 
-    /**
-     * Devuelve la posición en Y de la partícula.
-     */
     public int getY() {
         return y;
     }
 
-    /**
-     * Devuelve la velocidad en X de la partícula.
-     */
     public int getVx() {
         return vx;
     }
 
-    /**
-     * Devuelve la velocidad en Y de la partícula.
-     */
     public int getVy() {
         return vy;
+    }
+
+    public boolean interactWithDeamon(Deamon deamon) {
+        if (deamon.shouldRebound()) {
+            vx *= -1;
+            vy *= -1;
+            return false;
+        } else {
+            if (x < 200) {
+                int dx = (200 - x) + 10;
+                x += dx;
+                circle.moveHorizontal(dx);
+            }
+            return true;
+        }
     }
 }
