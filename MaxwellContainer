@@ -1,13 +1,8 @@
 import java.util.*;
-import javax.swing.JOptionPane;
 
-/**
- * Representa el contenedor donde interactúan las partículas, demonios y agujeros.
- */
 public class MaxwellContainer {
     private static Canvas canvas;
     private TreeMap<Integer, Deamon> demons;
-    private ArrayList<Hole> holes;
     private ArrayList<Particle> particles;
     private ArrayList<Rectangle> tablero;
     private int Height;
@@ -17,9 +12,6 @@ public class MaxwellContainer {
     private boolean isVisible;
     private boolean isOk;
 
-    /**
-     * Constructor privado del contenedor con dimensiones verificadas.
-     */
     private MaxwellContainer(int h, int w) {
         if ((2 <= h && h <= 2000) && (2 <= w && w <= 2000)) {
             this.isOk = true;
@@ -32,14 +24,10 @@ public class MaxwellContainer {
         }
     }
 
-    /**
-     * Constructor del contenedor con demonios, partículas y tamaño definido.
-     */
     public MaxwellContainer(int h, int w, int d, int b, int r, int[][] particlesData) {
         this(h, (w * 2));
         if (isOk) {
             this.demons = new TreeMap<>();
-            this.holes = new ArrayList<>();
             this.particles = new ArrayList<>();
             this.blueParticles = b;
             this.redParticles = r;
@@ -49,48 +37,35 @@ public class MaxwellContainer {
         }
     }
 
-    /**
-     * Verifica si el contenedor es válido.
-     */
-    private boolean ok() {
-        return isOk;
-    }
-
-    /**
-     * Inicializa el canvas donde se mostrarán los elementos.
-     */
     private void CrearCanvas(int width, int height) {
         canvas = new Canvas(width, height);
         canvas.getCanvas(width, height);
     }
 
-    /**
-     * Crea la estructura visual del tablero.
-     */
     private void CrearTablero(int w, int h) {
-        Rectangle straight1 = new Rectangle(0, 0, h, w, "yellow");
-        Rectangle straight2 = new Rectangle(5, 5, (h - 10), (w - 10), "white");
-        Rectangle straight3 = new Rectangle(((w / 2) - 2), 0, h, 4, "green");
+        Rectangle fondo = new Rectangle(0, 0, h, w, "yellow");
+        Rectangle interior = new Rectangle(5, 5, h - 10, w - 10, "white");
+
+        int muroX = (w / 2) - 2;
+        int huecoAltura = 40;
+        int huecoCentro = h / 2;
+
+        Rectangle muroSuperior = new Rectangle(muroX, 0, huecoCentro - (huecoAltura / 2), 4, "green");
+        Rectangle muroInferior = new Rectangle(muroX, huecoCentro + (huecoAltura / 2), h - (huecoCentro + (huecoAltura / 2)), 4, "green");
 
         this.tablero = new ArrayList<>();
-        tablero.add(straight1);
-        tablero.add(straight2);
-        tablero.add(straight3);
+        tablero.add(fondo);
+        tablero.add(interior);
+        tablero.add(muroSuperior);
+        tablero.add(muroInferior);
     }
 
-    /**
-     * Muestra los elementos en pantalla.
-     */
     public void makeVisible() {
         for (Rectangle r : this.tablero) r.makeVisible();
         for (Deamon d : this.demons.values()) d.makeVisible();
         for (Particle p : this.particles) p.makeVisible();
-        for (Hole h : this.holes) h.makeVisible();
     }
 
-    /**
-     * Agrega un demonio en la posición indicada.
-     */
     public void addDeamon(int d) {
         if (!demons.containsKey(d)) {
             Deamon deamon = new Deamon((this.Width / 2) - 10, d - 10, 20);
@@ -99,9 +74,6 @@ public class MaxwellContainer {
         }
     }
 
-    /**
-     * Agrega partículas al contenedor desde una matriz de datos.
-     */
     public void addParticlesForMatriz(int[][] particlesData) {
         for (int i = 0; i < (blueParticles + redParticles); i++) {
             boolean isRed = i < redParticles;
@@ -110,20 +82,31 @@ public class MaxwellContainer {
         }
     }
 
-    /**
-     * Agrega una partícula individual al contenedor.
-     */
     public void addParticle(String color, boolean isRed, int x, int y, int vx, int vy) {
         Particle particle = new Particle(color, isRed, x, y, vx, vy);
         this.particles.add(particle);
     }
 
-    /**
-     * Inicia la simulación.
-     */
     public void start(int ticks) {
         for (int i = 0; i < ticks; i++) {
-            for (Particle p : this.particles) p.move(1);
+            for (Particle p : this.particles) {
+                p.move(1);
+
+                //   un demonio cercano (±10 en  Y)
+                for (Map.Entry<Integer, Deamon> entry : demons.entrySet()) {
+                    int dy = Math.abs(entry.getKey() - p.getY());
+                    if (dy <= 10) {
+                        p.interactWithDeamon(entry.getValue());
+                        break;
+                    }
+                }
+            }
+
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }
