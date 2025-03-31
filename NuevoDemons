@@ -1,0 +1,19 @@
+
+package maxwell;
+
+public abstract class Demon {
+    protected int x, y;
+    protected boolean isVisible;
+
+    public Demon(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.isVisible = false;
+    }
+
+    public abstract boolean allowPass(Particle p); // Decide si la partícula pasa
+    public void makeVisible() { isVisible = true; }
+    public void makeInvisible() { isVisible = false; }
+    public int getX() { return x; }
+    public int getY() { return y; }
+}
