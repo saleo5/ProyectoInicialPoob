@@ -1,77 +1,185 @@
+import java.lang.Math;
+import java.util.*;
+
 public class Particle {
     private static final int size = 10;
+    private static int width, height, middle;
     private int vx, vy;
     private int x, y;
+    private static ArrayList<ArrayList<Integer>> demons = new ArrayList<>();
+    private static ArrayList<Hole> holes = new ArrayList<>();
+    private final boolean isRed;
     private Circle circle;
     private String color;
-    private final boolean isRed;
 
+    /**
+     * Constructor que crea una partícula con posición, velocidad y color.
+     */
     public Particle(String color, boolean isRed, int x, int y, int vx, int vy) {
         this.isRed = isRed;
-        this.vx = (vx == 0) ? 1 : vx;
-        this.vy = (vy == 0) ? 1 : vy;
+        this.vx = vx;
+        this.vy = vy;
         this.x = x;
         this.y = y;
         this.circle = new Circle(x, y, size, color);
         this.color = color;
     }
 
+    /**
+     * Establece las dimensiones del contenedor.
+     */
+    public void setDimensions(int w, int h){
+        width = w;
+        height = h;
+        middle = w / 2;
+    }
+
+    /**
+     * Borra la partícula de la pantalla.
+     */
+    public void erase(){
+        this.circle.erase();
+    }
+
+    /**
+     * Elimina un demonio de la lista.
+     */
+    public void deleteDemon(int x, int y){
+        demons.remove(new ArrayList<>(Arrays.asList(x, y)));
+    }
+
+    /**
+     * Agrega un demonio a la lista.
+     */
+    public void addDemon(int x, int y){
+        demons.add(new ArrayList<>(Arrays.asList(x, y)));
+    }
+
+    /**
+     * Agrega un agujero a la lista estática.
+     */
+    public void addhole(Hole h){
+        holes.add(h);
+    }
+
+    /**
+     * Verifica si la partícula está en el lado correcto del contenedor.
+     */
+    public boolean posicionCorrecta(){
+        if (middle < x - size && isRed) return true;
+        if (x < middle && !isRed) return true;
+        return false;
+    }
+
+    /**
+     * Dibuja la partícula en pantalla.
+     */
+    public void draw(){
+        this.circle.draw();
+    }
+
+    public boolean getIsRed(){
+        return this.isRed;
+    }
+
+    public String getColor(){
+        return this.color;
+    }
+
+    /**
+     * Hace visible la partícula.
+     */
+    public void makeVisible(){
+        this.circle.makeVisible();
+    }
+
+    /**
+     * Hace invisible la partícula.
+     */
+    public void makeInvisible(){
+        this.circle.makeInvisible();
+    }
+
+    /**
+     * Verifica si hay un demonio en la coordenada y dada.
+     */
+    public boolean DemonAccess(int y){
+        for (ArrayList<Integer> d : demons) {
+            if (d.get(0) == middle && d.get(1) == y) {
+                return Math.random() < 0.5;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Mueve la partícula una unidad de tiempo.
+     */
     public void move(int dt) {
         int newX = x + vx * dt;
         int newY = y + vy * dt;
 
-        if (newX < 5 || newX > 400 - 5 - size) {
+        if (newX < 5) {
+            newX = 5;
             vx *= -1;
         }
-        if (newY < 5 || newY > 400 - 5 - size) {
+        if (newX > width - 5 - size) {
+            newX = width - 5 - size;
+            vx *= -1;
+        }
+        if (newY < 5) {
+            newY = 5;
+            vy *= -1;
+        }
+        if (newY > height - 5 - size) {
+            newY = height - 5 - size;
             vy *= -1;
         }
 
-        x += vx * dt;
-        y += vy * dt;
-
-        circle.makeInvisible();
-        circle.moveHorizontal(vx * dt);
-        circle.moveVertical(vy * dt);
-        circle.makeVisible();
-    }
-
-    public void makeVisible() {
-        this.circle.makeVisible();
-    }
-
-    public void makeInvisible() {
-        this.circle.makeInvisible();
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getVx() {
-        return vx;
-    }
-
-    public int getVy() {
-        return vy;
-    }
-
-    public boolean interactWithDeamon(Deamon deamon) {
-        if (deamon.shouldRebound()) {
-            vx *= -1;
-            vy *= -1;
-            return false;
-        } else {
-            if (x < 200) {
-                int dx = (200 - x) + 10;
-                x += dx;
-                circle.moveHorizontal(dx);
+        // Intento de cruzar el muro
+        if ((x < middle - 2 && newX >= middle) || (x > middle + 2 && newX <= middle)) {
+            if (!DemonAccess(y)) {
+                newX = (vx > 0) ? middle - 1 : middle + 1;
+                vx *= -1;
             }
-            return true;
+        }
+
+        // Verificación de agujeros
+        for (Hole h : holes) {
+            if (h.getCoords().get(0) == newX && h.getCoords().get(1) == newY) {
+                if (!h.itsFull()) {
+                    this.makeInvisible();
+                    vx = 0;
+                    vy = 0;
+                    h.atrapado();
+                    return;
+                }
+            }
+        }
+
+        if (newX != x || newY != y) {
+            softMove(newX - x, newY - y);
+            x = newX;
+            y = newY;
+        }
+    }
+
+    /**
+     * Devuelve los datos actuales de la partícula.
+     */
+    public int[] getParticleData() {
+        return new int[]{x, y, vx, vy};
+    }
+
+    /**
+     * Mueve suavemente la partícula en pantalla.
+     */
+    public void softMove(int dx, int dy) {
+        if (dx != 0 || dy != 0) {
+            this.circle.makeInvisible();
+            this.circle.moveHorizontal(dx);
+            this.circle.moveVertical(dy);
+            this.circle.makeVisible();
         }
     }
 }
