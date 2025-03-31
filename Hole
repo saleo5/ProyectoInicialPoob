@@ -1,33 +1,78 @@
-/**
- * Representa un agujero que aparece visualmente cuando el demonio permite el paso.
- * No absorbe partículas ni las elimina.
- */
+import java.util.*;
+
 public class Hole {
-    private int x, y;
-    private int capacidad;
-    private int ocupados = 0;
-    private boolean full = false;
+    private int x1, x2, y1, y2;
+    private int centerX, centerY;
+    private int capacity;
+    private int occupied = 0;
     private Circle hole;
+    private boolean full = false;
 
     /**
-     * Constructor del agujero.
-     * @param x posición en X del centro
-     * @param y posición en Y del centro
-     * @param capacidad (actualmente no se usa, pero se conserva por compatibilidad)
+     * Constructor que crea un agujero con coordenadas y capacidad.
      */
-    public Hole(int x, int y, int capacidad) {
-        this.hole = new Circle(x - 10, y - 10, 20, "#01ffdc"); // color celeste
-        this.x = x;
-        this.y = y;
-        this.capacidad = capacidad;
+    public Hole(int x, int y, int particles) {
+        this.hole = new Circle(x - 10, y - 10, 20, "#01ffdc");
+        makeVisible();
+        centerX = x;
+        centerY = y;
+        x1 = x - 10;
+        x2 = x + 10;
+        y1 = y - 10;
+        y2 = y + 10;
+        capacity = particles;
     }
 
     /**
-     * Muestra el agujero visualmente .
+     * Hace visible el agujero en pantalla.
      */
     public void makeVisible() {
         this.hole.makeVisible();
     }
 
-    
+    /**
+     * Oculta el agujero de la pantalla.
+     */
+    public void makeInvisible() {
+        this.hole.makeInvisible();
+    }
+
+    /**
+     * Devuelve los datos del agujero: posición y cantidad atrapada.
+     */
+    public int[] dataHole() {
+        return new int[]{centerX, centerY, occupied};
+    }
+
+    /**
+     * Indica si el agujero está lleno.
+     */
+    public boolean itsFull() {
+        return this.full;
+    }
+
+    /**
+     * Incrementa el contador de partículas atrapadas.
+     */
+    public void atrapado() {
+        occupied += 1;
+        checkIfFull();
+    }
+
+    /**
+     * Devuelve las coordenadas centrales del agujero.
+     */
+    public ArrayList<Integer> getCoords() {
+        return new ArrayList<>(Arrays.asList(centerX, centerY));
+    }
+
+    /**
+     * Verifica si el agujero alcanzó su capacidad y lo oculta si es así.
+     */
+    public void checkIfFull() {
+        if (capacity == occupied) {
+            full = true;
+            makeInvisible();
+        }
+    }
 }
