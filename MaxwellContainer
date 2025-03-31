@@ -1,112 +1,242 @@
 import java.util.*;
+import javax.swing.JOptionPane;
 
 public class MaxwellContainer {
     private static Canvas canvas;
     private TreeMap<Integer, Deamon> demons;
+    private ArrayList<Hole> holes;
     private ArrayList<Particle> particles;
-    private ArrayList<Rectangle> tablero;
-    private int Height;
-    private int Width;
+    private ArrayList<Rectangle> board;
+    private int height;
+    private int width;
     private int blueParticles;
     private int redParticles;
     private boolean isVisible;
     private boolean isOk;
 
-    private MaxwellContainer(int h, int w) {
-        if ((2 <= h && h <= 2000) && (2 <= w && w <= 2000)) {
+    /**
+     * Constructor privado que valida y crea el tablero y canvas.
+     */
+    private MaxwellContainer(int h, int w){
+        if ((2 <= h && h <= 2000) && (2 <= w && w <= 2000)){
             this.isOk = true;
-            this.Height = h;
-            this.Width = w;
-            CrearCanvas(w, h);
-            CrearTablero(w, h);
+            this.height = h;
+            this.width = w;
+            createCanvas(w, h);
+            createBoard(w, h);
         } else {
             this.isOk = false;
+            checkIsOk();
         }
     }
 
-    public MaxwellContainer(int h, int w, int d, int b, int r, int[][] particlesData) {
+    /**
+     * Constructor público con datos de partículas, demonios, etc.
+     */
+    public MaxwellContainer(int h, int w, int d, int b, int r, int[][] particlesData){
         this(h, (w * 2));
         if (isOk) {
             this.demons = new TreeMap<>();
+            this.holes = new ArrayList<>();
             this.particles = new ArrayList<>();
             this.blueParticles = b;
             this.redParticles = r;
-            addParticlesForMatriz(particlesData);
+            addParticlesFromMatrix(particlesData);
+            sendDimensions();
             addDeamon(d);
             this.makeVisible();
         }
     }
 
-    private void CrearCanvas(int width, int height) {
+    // Verifica si el objeto se creó correctamente
+    private boolean checkIsOk(){
+        return isOk;
+    }
+
+    // Envía dimensiones a las partículas
+    private void sendDimensions(){
+        if (!this.particles.isEmpty()){
+            this.particles.get(0).setDimensions(this.width, this.height);
+        }
+    }
+
+    // Crea el canvas gráfico
+    private void createCanvas(int width, int height){
         canvas = new Canvas(width, height);
         canvas.getCanvas(width, height);
     }
 
-    private void CrearTablero(int w, int h) {
-        Rectangle fondo = new Rectangle(0, 0, h, w, "yellow");
-        Rectangle interior = new Rectangle(5, 5, h - 10, w - 10, "white");
-
-        int muroX = (w / 2) - 2;
-        int huecoAltura = 40;
-        int huecoCentro = h / 2;
-
-        Rectangle muroSuperior = new Rectangle(muroX, 0, huecoCentro - (huecoAltura / 2), 4, "green");
-        Rectangle muroInferior = new Rectangle(muroX, huecoCentro + (huecoAltura / 2), h - (huecoCentro + (huecoAltura / 2)), 4, "green");
-
-        this.tablero = new ArrayList<>();
-        tablero.add(fondo);
-        tablero.add(interior);
-        tablero.add(muroSuperior);
-        tablero.add(muroInferior);
+    // Crea el tablero visual
+    private void createBoard(int w, int h){
+        Rectangle border = new Rectangle(0, 0, h, w, "orange");
+        Rectangle background = new Rectangle(5, 5, h - 10, w - 10, "white");
+        Rectangle middle = new Rectangle((w / 2) - 2, 0, h, 4, "green");
+        this.board = new ArrayList<>();
+        board.add(border);
+        board.add(background);
+        board.add(middle);
     }
 
-    public void makeVisible() {
-        for (Rectangle r : this.tablero) r.makeVisible();
-        for (Deamon d : this.demons.values()) d.makeVisible();
+    // Muestra todos los elementos visuales
+    public void makeVisible(){
+        for (Rectangle r : this.board) r.makeVisible();
+        if (this.demons.size() != 0){
+            for (Deamon d : this.demons.values()) d.makeVisible();
+        }
         for (Particle p : this.particles) p.makeVisible();
+        for (Hole h : this.holes) h.makeVisible();
     }
 
+    // Oculta todos los elementos visuales
+    public void makeInvisible(){
+        for (Rectangle r : this.board) r.makeInvisible();
+        if (this.demons.size() != 0){
+            for (Deamon d : this.demons.values()) d.makeInvisible();
+        }
+        for (Particle p : this.particles) p.makeInvisible();
+        for (Hole h : this.holes) h.makeInvisible();
+    }
+
+    // Verifica si ya hay un demonio en una posición
+    private boolean hasDeamonAt(int d){
+        return this.demons.containsKey(d);
+    }
+
+    // Verifica si hay colisión con otro demonio cerca
+    private boolean isDeamonCollision(int d){
+        for (int i = (d - 10); i <= (d + 10); i++){
+            if (hasDeamonAt(i)) return true;
+        }
+        return false;
+    }
+
+    // Agrega un demonio al centro del contenedor
     public void addDeamon(int d) {
-        if (!demons.containsKey(d)) {
-            Deamon deamon = new Deamon((this.Width / 2) - 10, d - 10, 20);
+        if (!hasDeamonAt(d)) {
+            Deamon deamon = new Deamon((this.width / 2) - 10, d - 10, 20);
             deamon.makeVisible();
             demons.put(d, deamon);
+            if (!this.particles.isEmpty()) {
+                this.particles.get(0).addDemon(this.width / 2, d);
+            }
+        } else {
+            System.out.println("Hay un demonio en este lugar");
         }
     }
 
-    public void addParticlesForMatriz(int[][] particlesData) {
+    // Elimina un demonio si existe
+    public void deleteDeamon(int d) {
+        if (hasDeamonAt(d)){
+            this.demons.get(d).erase();
+            this.demons.remove(d);
+            if (!this.particles.isEmpty()) {
+                this.particles.get(0).deleteDemon(this.width / 2, d);
+            }
+        } else {
+            System.out.println("El demonio no existe");
+        }
+    }
+
+    // Agrega todas las partículas a partir de una matriz de datos
+    public void addParticlesFromMatrix(int[][] particlesData){
         for (int i = 0; i < (blueParticles + redParticles); i++) {
-            boolean isRed = i < redParticles;
-            String color = isRed ? "red" : "blue";
-            addParticle(color, isRed, particlesData[i][0], particlesData[i][1], particlesData[i][2], particlesData[i][3]);
+            if (i < redParticles) {
+                addParticle("red", true, particlesData[i][0], particlesData[i][1], particlesData[i][2], particlesData[i][3]);
+            } else {
+                addParticle("blue", false, particlesData[i][0], particlesData[i][1], particlesData[i][2], particlesData[i][3]);
+            }
         }
     }
 
-    public void addParticle(String color, boolean isRed, int x, int y, int vx, int vy) {
+    // Agrega una partícula individual
+    public void addParticle(String color, boolean isRed, int x, int y, int vx, int vy){
         Particle particle = new Particle(color, isRed, x, y, vx, vy);
         this.particles.add(particle);
     }
 
+    // Elimina partículas por color
+    public void deleteParticlesByColor(String color){
+        for (Particle p : this.particles) p.erase();
+        this.particles.removeIf(p -> p.getColor().equals(color));
+        for (Particle p : this.particles) p.draw();
+    }
+
+    // Inicia el movimiento de partículas por una cantidad de ticks
     public void start(int ticks) {
         for (int i = 0; i < ticks; i++) {
             for (Particle p : this.particles) {
                 p.move(1);
-
-                //   un demonio cercano (±10 en  Y)
-                for (Map.Entry<Integer, Deamon> entry : demons.entrySet()) {
-                    int dy = Math.abs(entry.getKey() - p.getY());
-                    if (dy <= 10) {
-                        p.interactWithDeamon(entry.getValue());
-                        break;
-                    }
-                }
-            }
-
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                checkGoal();
             }
         }
+    }
+
+    // Devuelve una lista con las escalas de los demonios
+    public ArrayList<Integer> getDemonScales(){
+        ArrayList<Integer> scales = new ArrayList<>();
+        for (Deamon d : this.demons.values()) {
+            scales.add(d.getEscala());
+        }
+        return scales;
+    }
+
+    // Muestra mensaje si se cumple la condición de victoria
+    public void checkGoal(){
+        if (isGoalReached()) {
+            JOptionPane.showMessageDialog(null, "Juego terminado");
+        }
+    }
+
+    // Verifica si todas las partículas están en la posición correcta
+    public boolean isGoalReached(){
+        for (Particle p : particles) {
+            if (!p.posicionCorrecta()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Devuelve los datos de todas las partículas
+    public int[][] getParticlesData(){
+        int[][] dataParticles = new int[particles.size()][4];
+        for (int i = 0; i < particles.size(); i++) {
+            int[] data = particles.get(i).getParticleData();
+            dataParticles[i] = data;
+        }
+        return dataParticles;
+    }
+
+    // Devuelve los índices donde hay demonios
+    public int[] getDemonsPositions(){
+        int[] dataDemons = demons.keySet().stream().mapToInt(Integer::intValue).toArray();
+        Arrays.sort(dataDemons);
+        return dataDemons;
+    }
+
+    // Agrega un agujero si tiene capacidad positiva
+    public void addHole(int x, int y, int capacity){
+        if (capacity > 0) {
+            Hole h = new Hole(x, y, capacity);
+            this.holes.add(h);
+            if (!this.particles.isEmpty()) {
+                this.particles.get(0).addhole(h);
+            }
+            isOk = true;
+            checkIsOk();
+        } else {
+            isOk = false;
+            checkIsOk();
+        }
+    }
+
+    // Devuelve los datos de los agujeros
+    public int[][] getHolesData(){
+        int[][] dataHoles = new int[holes.size()][3];
+        for (int i = 0; i < holes.size(); i++) {
+            int[] data = holes.get(i).dataHole();
+            dataHoles[i] = data;
+        }
+        return dataHoles;
     }
 }
