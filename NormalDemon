@@ -1,0 +1,13 @@
+// Archivo: NormalDemon.java (Tipo básico para el ciclo 2)
+package maxwell;
+
+public class NormalDemon extends Demon {
+    public NormalDemon(int x, int y) {
+        super(x, y);
+    }
+
+    @Override
+    public boolean allowPass(Particle p) {
+        return Math.random() < 0.5; // 50% de probabilidad de paso
+    }
+}
