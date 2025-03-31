@@ -1,29 +1,93 @@
+import java.util.ArrayList;
+import java.awt.*;
+import javax.swing.*;
+
 public class Deamon {
     private boolean isVisible;
-    private int xPosition, yPosition, escala;
-    private Rectangle body;
+    private Image texture;
+    private int xPosition, yPosition, scale;
+    private ArrayList<Figure> figures;
 
-    public Deamon(int x, int y, int escala) {
-        this.xPosition = x;
+    /**
+     * Constructor que inicializa la posición y la escala del demonio.
+     */
+    public Deamon(int x, int y, int scale) {
+        createShape(scale, x, y);
+        this.scale = scale;
         this.yPosition = y;
-        this.escala = escala;
-        this.body = new Rectangle(x, y, escala, escala, "black");
+        this.xPosition = x;
     }
 
+    /**
+     * Devuelve la escala del demonio.
+     */
+    public int getEscala() {
+        return this.scale;
+    }
+
+    /**
+     * Crea la figura del demonio. Actualmente es un solo rectángulo.
+     */
+    public void createShape(int width, int x, int y) {
+        Rectangle base = new Rectangle(x, y, width, width, "black");
+        this.figures = new ArrayList<>();
+        figures.add(base);
+    }
+
+    /**
+     * Muestra el demonio en pantalla.
+     */
     public void makeVisible() {
+        for (Figure f : this.figures) {
+            f.makeVisible();
+        }
         this.isVisible = true;
-        this.body.makeVisible();
     }
 
-    public boolean shouldRebound() {
+    /**
+     * Oculta el demonio de la pantalla.
+     */
+    public void makeInvisible() {
+        for (Figure f : this.figures) {
+            f.makeInvisible();
+        }
+        this.isVisible = false;
+    }
+
+    /**
+     * Dibuja manualmente el demonio.
+     */
+    private void draw() {
+        for (Figure f : this.figures) {
+            f.draw();
+        }
+    }
+
+    /**
+     * Borra el demonio de la pantalla.
+     */
+    public void erase() {
+        for (Figure f : this.figures) {
+            f.erase();
+        }
+    }
+
+    /**
+     * Devuelve las coordenadas ocupadas por el demonio.
+     */
+    public ArrayList<Integer> getPositions() {
+        ArrayList<Integer> positions = new ArrayList<>();
+        positions.add(this.xPosition);
+        positions.add(this.xPosition + this.scale);
+        positions.add(this.yPosition);
+        positions.add(this.yPosition + this.scale);
+        return positions;
+    }
+
+    /**
+     * Simula el acceso aleatorio de una partícula a través del demonio.
+     */
+    public boolean DemonAccess() {
         return Math.random() < 0.5;
-    }
-
-    public int getX() {
-        return xPosition;
-    }
-
-    public int getY() {
-        return yPosition;
     }
 }
