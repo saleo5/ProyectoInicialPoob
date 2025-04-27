@@ -1,0 +1,226 @@
+package presentation;
+
+import domain.DMaxwell;
+import domain.Particle;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.util.ArrayList;
+import javax.swing.*;
+
+public class DMaxwellGUI extends JFrame {
+    private JMenuBar menuBar;
+    private JMenu menuArchivo;
+    private JMenuItem menuItemNuevo, menuItemAbrir, menuItemSalvar, menuItemSalir;
+    private JMenu menuCambiarColor;
+    private JPanel panelTablero;
+    private DMaxwell model; 
+    private JButton botonMoverDerecha, botonMoverIzquierda, botonMoverArriba, botonMoverAbajo, botonRefrescar;
+    private int width, height, blueParticles, redParticles;
+
+    public DMaxwellGUI() {
+        super("Maxwell Discreto");
+        askBoardParameters();
+        prepareElements();
+        prepareElementsMenu();
+        prepareActions();
+        prepareActionsMenu();
+        prepareElementsBoard();
+    }
+
+    private void askBoardParameters() {
+        width = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese el ancho del tablero:"));
+        height = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese el alto del tablero:"));
+        blueParticles = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese la cantidad de partículas azules:"));
+        redParticles = Integer.parseInt(JOptionPane.showInputDialog(this, "Ingrese la cantidad de partículas rojas:"));
+
+        model = new DMaxwell(width, height, blueParticles, redParticles);
+    }
+
+    private void prepareElements() {
+        setSize(800, 600);
+        setLocationRelativeTo(null);
+
+        botonMoverDerecha = new JButton("Mover Derecha");
+        botonMoverIzquierda = new JButton("Mover Izquierda");
+        botonMoverArriba = new JButton("Mover Arriba");
+        botonMoverAbajo = new JButton("Mover Abajo");
+        botonRefrescar = new JButton("Refrescar"); // 🔥 Botón nuevo
+
+        JPanel panelBotones = new JPanel();
+        panelBotones.add(botonMoverIzquierda);
+        panelBotones.add(botonMoverDerecha);
+        panelBotones.add(botonMoverArriba);
+        panelBotones.add(botonMoverAbajo);
+        panelBotones.add(botonRefrescar);
+
+        add(panelBotones, BorderLayout.SOUTH);
+    }
+
+    private void prepareElementsMenu() {
+        menuBar = new JMenuBar();
+
+        menuArchivo = new JMenu("Archivo");
+        menuItemNuevo = new JMenuItem("Nuevo");
+        menuItemAbrir = new JMenuItem("Abrir");
+        menuItemSalvar = new JMenuItem("Salvar");
+        menuItemSalir = new JMenuItem("Salir");
+
+        menuArchivo.add(menuItemNuevo);
+        menuArchivo.add(menuItemAbrir);
+        menuArchivo.add(menuItemSalvar);
+        menuArchivo.addSeparator();
+        menuArchivo.add(menuItemSalir);
+
+        menuCambiarColor = new JMenu("Cambiar color de partículas");
+
+        menuBar.add(menuArchivo);
+        menuBar.add(menuCambiarColor);
+
+        setJMenuBar(menuBar);
+    }
+
+    private void prepareElementsBoard() {
+        panelTablero = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                g.setColor(Color.WHITE);
+                g.fillRect(0, 0, getWidth(), getHeight());
+
+                int scaleX = getWidth() / width;
+                int scaleY = getHeight() / height;
+
+                // Bordes del tablero
+                g.setColor(Color.GRAY);
+                g.fillRect(0, 0, getWidth(), 5); // borde superior
+                g.fillRect(0, getHeight() - 5, getWidth(), 5); // borde inferior
+                g.fillRect(0, 0, 5, getHeight()); // borde izquierdo
+                g.fillRect(getWidth() - 5, 0, 5, getHeight()); // borde derecho
+
+                // Pared divisoria
+                g.fillRect(getWidth() / 2 - 5, 0, 10, getHeight());
+
+                // Demonio (3 celdas)
+                g.setColor(Color.GREEN);
+                int demonioCentroY = getHeight() / 2;
+                g.fillRect(getWidth() / 2 - 5, demonioCentroY - 30, 10, 90);
+
+                // Dibujar partículas
+                ArrayList<Particle> particles = model.getParticles();
+                for (Particle p : particles) {
+                    g.setColor(p.getColor());
+                    g.fillRect(p.getX() * scaleX, p.getY() * scaleY, scaleX, scaleY);
+                }
+            }
+        };
+
+        panelTablero.setBackground(Color.WHITE);
+        panelTablero.setPreferredSize(new Dimension(512, 256));
+        add(panelTablero, BorderLayout.CENTER);
+    }
+
+    private void prepareActions() {
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                exit();
+            }
+        });
+    }
+
+    private void prepareActionsMenu() {
+        menuItemSalir.addActionListener(e -> exit());
+
+        menuItemNuevo.addActionListener(e ->
+            JOptionPane.showMessageDialog(this, "Nuevo archivo creado.")
+        );
+
+        menuItemAbrir.addActionListener(e -> abrirArchivo());
+        menuItemSalvar.addActionListener(e -> salvarArchivo());
+
+        menuCambiarColor.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                cambiarColorParticulas();
+            }
+        });
+
+        botonMoverDerecha.addActionListener(e -> mover("derecha"));
+        botonMoverIzquierda.addActionListener(e -> mover("izquierda"));
+        botonMoverArriba.addActionListener(e -> mover("arriba"));
+        botonMoverAbajo.addActionListener(e -> mover("abajo"));
+        botonRefrescar.addActionListener(e -> reiniciarPartida()); // 🔥 Ahora refresca de verdad
+    }
+
+    private void mover(String direccion) {
+        try {
+            model.move(direccion);
+            refresh();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al mover partículas: " + ex.getMessage());
+        }
+    }
+
+    private void reiniciarPartida() {
+        model = new DMaxwell(width, height, blueParticles, redParticles); // 🔥 Nueva partida
+        refresh();
+    }
+
+    private void cambiarColorParticulas() {
+        Color nuevoColor = JColorChooser.showDialog(this, "Seleccione un nuevo color para las partículas", Color.RED);
+        if (nuevoColor != null) {
+            model.changeColor(nuevoColor);
+            refresh();
+        }
+    }
+
+    private void abrirArchivo() {
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            JOptionPane.showMessageDialog(
+                this,
+                "Funcionalidad en construcción.\nAcción: Abrir archivo\nArchivo seleccionado: " + file.getName()
+            );
+        }
+    }
+
+    private void salvarArchivo() {
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            JOptionPane.showMessageDialog(
+                this,
+                "Funcionalidad en construcción.\nAcción: Salvar archivo\nArchivo seleccionado: " + file.getName()
+            );
+        }
+    }
+
+    public void refresh() {
+        panelTablero.repaint();
+    }
+
+    private void exit() {
+        int respuesta = JOptionPane.showConfirmDialog(
+            this,
+            "¿Estás seguro de que deseas salir?",
+            "Confirmar salida",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (respuesta == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }
+
+    public static void main(String[] args) {
+        DMaxwellGUI ventana = new DMaxwellGUI();
+        ventana.setVisible(true);
+    }
+}
