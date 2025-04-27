@@ -1,0 +1,7 @@
+package domain;
+
+public class DMaxwellException extends Exception {
+    public DMaxwellException(String message) {
+        super(message);
+    }
+}
