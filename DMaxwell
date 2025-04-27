@@ -1,0 +1,122 @@
+package domain;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class DMaxwell {
+    private Particle[][] board;
+    private int width;
+    private int height;
+    private Random random;
+
+    public DMaxwell(int width, int height, int blueParticles, int redParticles) {
+        this.width = width;
+        this.height = height;
+        board = new Particle[width][height];
+        random = new Random();
+        generateParticles(blueParticles, Color.BLUE);
+        generateParticles(redParticles, Color.RED);
+    }
+
+    private void generateParticles(int count, Color color) {
+        int placed = 0;
+        while (placed < count) {
+            int x = random.nextInt(width);
+            int y = random.nextInt(height);
+            if (board[x][y] == null) {
+                board[x][y] = new Particle(x, y, color);
+                placed++;
+            }
+        }
+    }
+
+    public ArrayList<Particle> getParticles() {
+        ArrayList<Particle> particles = new ArrayList<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (board[x][y] != null) {
+                    particles.add(board[x][y]);
+                }
+            }
+        }
+        return particles;
+    }
+
+    public void changeColor(Color newColor) {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (board[x][y] != null) {
+                    board[x][y].setColor(newColor);
+                }
+            }
+        }
+    }
+
+    public void move(String direction) throws DMaxwellException {
+        ArrayList<Particle> allParticles = new ArrayList<>(getParticles());
+
+        for (Particle p : allParticles) {
+            int currentX = p.getX();
+            int currentY = p.getY();
+            int newX = currentX;
+            int newY = currentY;
+
+            switch (direction.toLowerCase()) {
+                case "derecha":
+                    newX++;
+                    break;
+                case "izquierda":
+                    newX--;
+                    break;
+                case "arriba":
+                    newY--;
+                    break;
+                case "abajo":
+                    newY++;
+                    break;
+                default:
+                    throw new DMaxwellException("Dirección inválida: " + direction);
+            }
+
+            if (isValidMove(currentX, currentY, newX, newY)) {
+                board[newX][newY] = board[currentX][currentY];
+                board[currentX][currentY] = null;
+                p.setPosition(newX, newY);
+            }
+        }
+    }
+
+    private boolean isValidMove(int currentX, int currentY, int newX, int newY) {
+        // Bordes del tablero
+        if (newX < 0 || newX >= width || newY < 0 || newY >= height) {
+            return false;
+        }
+
+        // No pasar encima de otra partícula
+        if (board[newX][newY] != null) {
+            return false;
+        }
+
+        int muroX = width / 2;
+        int demonioCentroY = height / 2;
+
+        // ¿Está intentando cruzar de un lado al otro del muro?
+        boolean cruzandoDeIzquierda = (currentX < muroX && newX == muroX);
+        boolean cruzandoDeDerecha = (currentX > muroX && newX == muroX - 1);
+
+        if (cruzandoDeIzquierda || cruzandoDeDerecha) {
+            // ¿Está en la zona vertical del demonio (3 celdas alrededor del centro)?
+            if (currentY >= demonioCentroY - 1 && currentY <= demonioCentroY + 1) {
+                // Está en zona del demonio: decide aleatoriamente
+                return random.nextBoolean(); // true pasa, false rebota
+            } else {
+                // Si no está en zona del demonio, rebota automáticamente
+                return false;
+            }
+        }
+
+        // Movimiento normal
+        return true;
+    }
+}
