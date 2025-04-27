@@ -1,0 +1,16 @@
+package domain;
+
+import java.util.Random;
+
+public class Demon {
+    private Random random;
+
+    public Demon() {
+        random = new Random();
+    }
+
+    public boolean permitirPaso() {
+        // 50% de probabilidad de permitir el paso
+        return random.nextBoolean();
+    }
+}
